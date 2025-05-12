@@ -1,59 +1,98 @@
 <script>
-	import Counter from './Counter.svelte';
-	import welcome from '$lib/images/svelte-welcome.webp';
-	import welcome_fallback from '$lib/images/svelte-welcome.png';
+	import mapboxgl from "mapbox-gl";
+	import "../../node_modules/mapbox-gl/dist/mapbox-gl.css";
+	mapboxgl.accessToken = "pk.eyJ1IjoiZXNtaXRjaDIiLCJhIjoiY205Ym82bTBlMGk1dDJ3cHZ0Y2plbDBjMSJ9.w15FrONlbQzksaDlmfLL1g";
+
+	import { onMount } from "svelte";
+	import * as d3 from "d3";
+
+	async function initialize() {
+		let map = new mapboxgl.Map({
+			container: "map",
+			style: "mapbox://styles/mapbox/streets-v12",
+			zoom: 12,
+			center: [-71.09415, 42.36027]
+
+		});
+
+		await new Promise(resolve => map.on("load", resolve));
+		map.addSource("boston_route", {
+			type: "geojson",
+			data: "https://bostonopendata-boston.opendata.arcgis.com/datasets/boston::existing-bike-network-2022.geojson?outSR=%7B%22latestWkid%22%3A3857%2C%22wkid%22%3A102100%7D",
+		});
+
+		map.addLayer({
+			id: "SOME_ID", // A name for our layer (up to you)
+			type: "line", // one of the supported layer types, e.g. line, circle, etc.
+			source: "boston_route", // The id we specified in `addSource()`
+			paint: {
+				"line-color": "green",
+				"line-width": 3,
+				"line-opacity": 0.4
+			},
+		});
+
+		map.addSource("cambridge_route", {
+			type: "geojson",
+			data: "https://raw.githubusercontent.com/cambridgegis/cambridgegis_data/main/Recreation/Bike_Facilities/RECREATION_BikeFacilities.geojson",
+		});
+
+		map.addLayer({
+			id: "SOME_ID2", // A name for our layer (up to you)
+			type: "line", // one of the supported layer types, e.g. line, circle, etc.
+			source: "cambridge_route", // The id we specified in `addSource()`
+			paint: {
+				"line-color": "green",
+				"line-width": 3,
+				"line-opacity": 0.4
+			},
+		});
+
+		console.log("hello world");
+		let stations = d3.csv("https://vis-society.github.io/labs/8/data/bluebikes-stations.csv");
+		console.log(stations);
+
+
+	}
+
+	onMount(() => {
+		initialize();
+	})
+
+	
+
+
+
+
 </script>
 
 <svelte:head>
-	<title>Home</title>
+	<title>LAB 8 MAP</title>
 	<meta name="description" content="Svelte demo app" />
 </svelte:head>
 
-<section>
-	<h1>
-		<span class="welcome">
-			<picture>
-				<source srcset={welcome} type="image/webp" />
-				<img src={welcome_fallback} alt="Welcome" />
-			</picture>
-		</span>
+<h1>Lab 8 -- Map </h1>
 
-		to your new<br />SvelteKit app
-	</h1>
+<div id="map">
+	<svg></svg>
+</div>
 
-	<h2>
-		try editing <strong>src/routes/+page.svelte</strong>
-	</h2>
-
-	<Counter />
-</section>
 
 <style>
-	section {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		flex: 0.6;
+	@import url("$lib/global.css");
+
+	#map {
+		flex: 1;
 	}
 
-	h1 {
-		width: 100%;
-	}
-
-	.welcome {
-		display: block;
-		position: relative;
-		width: 100%;
-		height: 0;
-		padding: 0 0 calc(100% * 495 / 2048) 0;
-	}
-
-	.welcome img {
+	#map svg {
+		/* background: yellow; */
+		/* opacity: 50%; */
 		position: absolute;
+		z-index: 1;
 		width: 100%;
 		height: 100%;
-		top: 0;
-		display: block;
+		pointer-events: none;
 	}
+
 </style>
